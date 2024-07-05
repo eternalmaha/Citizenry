@@ -3,16 +3,19 @@ import axios from 'axios';
 import './App.css'
 
 
+
 const CIVIC_API_KEY = import.meta.env.VITE_APP_CIVIC_API_KEY
-console.log('CIVIC_API_KEY:', CIVIC_API_KEY);
+
 
 function App() {
 
   const [repData, setRepData] = useState(null); 
   const [error, setError] = useState(null); 
+  
 
 
-  const getRep = async () => {
+
+  const getData = async () => {
     try {
       const response = await axios.get('https://www.googleapis.com/civicinfo/v2/representatives', {
         params: {
@@ -21,8 +24,22 @@ function App() {
         }
       });
 
-      setRepData(response.data)
-      console.log(response.data)
+      const officials = response.data.officials.map((official) => ({
+        name: official.name,
+        party: official.party
+      }))
+
+      const offices = response.data.offices.map((office) => ({
+        name: office.name
+      }))
+
+      setRepData(officials, offices)
+      console.log(officials)
+      console.log(response.data.officials)
+      console.log(response.data.offices)
+      
+      
+
     } catch (err) {
       setError(err.response ? err.response.data : err.message);
       console.error('Error fetching representatives:', err.response ? err.response.data : err.message)
@@ -33,21 +50,27 @@ function App() {
   return (
     <>
      <section>
-          <button onClick={getRep}>Who is my Rep?</button>
-      </section>
+          <button onClick={getData}>Roles in Government</button>
       {repData && (
         <section>
-          <h2>Representative Information</h2>
+          <ul>
+          {repData.map((official, id) => (
+            <li key = {id}>
+                Name: {official.name}
+                Party: {official.party}
+            </li>
+            ))}
+          </ul>
           <pre>{JSON.stringify(repData, null, 2)}</pre>
         </section>
       )}
+      </section>
       {error && (
         <section>
           <h2>Error</h2>
           <pre>{JSON.stringify(error, null, 2)}</pre>
         </section>
       )}
-      
 
     </>
   )
